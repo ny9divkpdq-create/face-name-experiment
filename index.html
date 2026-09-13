@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ja">
+ 
+<head>
+<meta charset="UTF-8">
+<title>顔と名前の記憶実験</title>
+ 
+<style>
+ 
+body {
+  font-family: sans-serif;
+  text-align: center;
+  margin: 0;
+  padding: 40px 20px;
+  background-color: white;
+}
+ 
+h1 {
+  margin-bottom: 30px;
+}
+ 
+/* 説明文 */
+#instructions {
+  max-width: 700px;
+  margin: 0 auto 30px auto;
+  padding: 20px;
+  border: 1px solid #cccccc;
+  text-align: left;
+  line-height: 1.8;
+  background-color: #f8f8f8;
+}
+ 
+/* 実験画面 */
+#experiment {
+  display: none;
+}
+ 
+/* テスト画面 */
+#test {
+  display: none;
+}
+ 
+/* 終了画面 */
+#finish {
+  display: none;
+}
+ 
+/* 写真 */
+#photo,
+#testPhoto {
+  width: 300px;
+  height: 300px;
+  object-fit: cover;
+  border: 1px solid #cccccc;
+}
+ 
+/* 名前 */
+#name {
+  font-size: 28px;
+  margin-top: 20px;
+  font-weight: bold;
+}
+ 
+/* タイマー */
+#timer {
+  font-size: 20px;
+  margin-top: 20px;
+}
+ 
+/* 問題番号 */
+#questionNumber {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+ 
+/* 回答欄 */
+#answer {
+  width: 300px;
+  padding: 12px;
+  font-size: 20px;
+  margin-top: 20px;
+  box-sizing: border-box;
+}
+ 
+/* 学籍番号・名前入力 */
+#studentNumber,
+#studentName {
+  width: 300px;
+  padding: 12px;
+  font-size: 20px;
+  box-sizing: border-box;
+}
+ 
+button {
+  font-size: 20px;
+  padding: 12px 30px;
+  margin-top: 20px;
+  cursor: pointer;
+}
+ 
+.input-area {
+  margin-top: 25px;
+}
+ 
+.input-area p {
+  margin-bottom: 8px;
+}
+ 
+.example {
+  font-size: 16px;
+  margin-top: 8px;
+}
+ 
+</style>
+ 
+</head>
+ 
+<body>
+ 
+ 
+<!-- ========================= -->
+<!-- 最初の説明画面 -->
+<!-- ========================= -->
+ 
+<div id="start">
+ 
+<h1>顔と名前の記憶実験</h1>
+ 
+<div id="instructions">
+ 
+<h2>実験について</h2>
+ 
+<p>
+ここに実験の説明を入力してください。
+</p>
+ 
+<p>
+これから10名の顔写真と名前が順番に表示されます。
+それぞれの顔と名前をできるだけ覚えてください。
+</p>
+ 
+<p>
+学習が終了した後、顔写真を見て名前を回答する記憶テストを行います。
+</p>
+ 
+<p>
+実験中は、できるだけ集中して取り組んでください。
+</p>
+ 
+</div>
+ 
+ 
+<!-- 学籍番号・名前 -->
+ 
+<div class="input-area">
+ 
+<p>
+<strong>学籍番号</strong>
+</p>
+ 
+<input
+  type="text"
+  id="studentNumber"
+  placeholder="学籍番号を入力してください"
+>
+ 
+<p class="example">
+※ 5年4組1番 → 5401
+</p>
+ 
+ 
+<p>
+<strong>名前</strong>
+</p>
+ 
+<input
+  type="text"
+  id="studentName"
+  placeholder="名前を入力してください"
+>
+ 
+</div>
+ 
+ 
+<button onclick="startExperiment()">実験開始</button>
+ 
+</div>
+ 
+ 
+<!-- ========================= -->
+<!-- 学習画面 -->
+<!-- ========================= -->
+ 
+<div id="experiment">
+ 
+<p id="personNumber"></p>
+ 
+<img id="photo" src="" alt="顔写真">
+ 
+<div id="name"></div>
+ 
+<div id="timer"></div>
+ 
+</div>
+ 
+ 
+<!-- ========================= -->
+<!-- 記憶テスト画面 -->
+<!-- ========================= -->
+ 
+<div id="test">
+ 
+<h1>記憶テスト</h1>
+ 
+<div id="questionNumber"></div>
+ 
+<p>
+この人の名前を入力してください。
+</p>
+ 
+<img id="testPhoto" src="" alt="顔写真">
+ 
+<br>
+ 
+<input
+  type="text"
+  id="answer"
+  placeholder="名前を入力してください"
+>
+ 
+<br>
+ 
+<button onclick="nextQuestion()">次へ</button>
+ 
+</div>
+ 
+ 
+<!-- ========================= -->
+<!-- 終了画面 -->
+<!-- ========================= -->
+ 
+<div id="finish">
+ 
+<h1>実験終了</h1>
+ 
+<p>
+これで実験は終了です。
+</p>
+ 
+<p>
+ご協力ありがとうございました。
+</p>
+ 
+</div>
+ 
+ 
+<script>
+ 
+ 
+/* ========================================
+   Googleスプレッドシートへ送信するURL
+   ======================================== */
+ 
+const WEB_APP_URL =
+"https://script.google.com/macros/s/AKfycbznJv7cONiRR1afJRfwtiXflxrShuIuGL2tunbVSoFoQTojXLdRHeElVcRqWaEFLydsuQ/exec";
+ 
+ 
+/* ========================================
+   実験に使用する10人
+   ======================================== */
+ 
+const people = [
+ 
+{
+  name: "山田 太郎",
+  image: "images/person01.jpg"
+},
+ 
+{
+  name: "佐藤 花子",
+  image: "images/person02.jpg"
+},
+ 
+{
+  name: "鈴木 一郎",
+  image: "images/person03.jpg"
+},
+ 
+{
+  name: "田中 美咲",
+  image: "images/person04.jpg"
+},
+ 
+{
+  name: "高橋 翔太",
+  image: "images/person05.jpg"
+},
+ 
+{
+  name: "伊藤 由美",
+  image: "images/person06.jpg"
+},
+ 
+{
+  name: "渡辺 健太",
+  image: "images/person07.jpg"
+},
+ 
+{
+  name: "中村 彩",
+  image: "images/person08.jpg"
+},
+ 
+{
+  name: "小林 拓也",
+  image: "images/person09.jpg"
+},
+ 
+{
+  name: "加藤 愛",
+  image: "images/person10.jpg"
+}
+ 
+];
+ 
+ 
+/* ========================================
+   1人あたりの表示時間
+   ======================================== */
+ 
+const displayTime = 20;
+ 
+ 
+/* ========================================
+   現在の人物
+   ======================================== */
+ 
+let currentPerson = 0;
+ 
+ 
+/* ========================================
+   残り時間
+   ======================================== */
+ 
+let remainingTime = displayTime;
+ 
+ 
+/* ========================================
+   タイマー
+   ======================================== */
+ 
+let timer;
+ 
+ 
+/* ========================================
+   テスト用
+   ======================================== */
+ 
+let currentQuestion = 0;
+ 
+ 
+/* ========================================
+   回答を保存する配列
+   ======================================== */
+ 
+let answers = [];
+ 
+ 
+/* ========================================
+   実験開始
+   ======================================== */
+ 
+function startExperiment() {
+ 
+  // 学籍番号を取得
+  const studentNumber =
+    document.getElementById("studentNumber").value.trim();
+ 
+  // 名前を取得
+  const studentName =
+    document.getElementById("studentName").value.trim();
+ 
+ 
+  // 未入力の場合
+  if (studentNumber === "" || studentName === "") {
+ 
+    alert("学籍番号と名前を入力してください。");
+ 
+    return;
+ 
+  }
+ 
+ 
+  // 説明画面を消す
+  document.getElementById("start").style.display = "none";
+ 
+  // 学習画面を表示
+  document.getElementById("experiment").style.display = "block";
+ 
+  // 最初の人物を表示
+  showPerson();
+ 
+  // 1秒ごとにカウントダウン
+  timer = setInterval(countDown, 1000);
+ 
+}
+ 
+ 
+/* ========================================
+   人物を表示
+   ======================================== */
+ 
+function showPerson() {
+ 
+  const person = people[currentPerson];
+ 
+  document.getElementById("photo").src = person.image;
+ 
+  document.getElementById("name").textContent = person.name;
+ 
+  document.getElementById("personNumber").textContent =
+    "人物 " + (currentPerson + 1) + " / " + people.length;
+ 
+  remainingTime = displayTime;
+ 
+  document.getElementById("timer").textContent =
+    "次の人物まで：" + remainingTime + "秒";
+ 
+}
+ 
+ 
+/* ========================================
+   カウントダウン
+   ======================================== */
+ 
+function countDown() {
+ 
+  remainingTime--;
+ 
+  document.getElementById("timer").textContent =
+    "次の人物まで：" + remainingTime + "秒";
+ 
+ 
+  if (remainingTime <= 0) {
+ 
+    currentPerson++;
+ 
+ 
+    // 10人すべて終了
+    if (currentPerson >= people.length) {
+ 
+      clearInterval(timer);
+ 
+      startTest();
+ 
+      return;
+ 
+    }
+ 
+ 
+    // 次の人物を表示
+    showPerson();
+ 
+  }
+ 
+}
+ 
+ 
+/* ========================================
+   記憶テスト開始
+   ======================================== */
+ 
+function startTest() {
+ 
+  // 学習画面を消す
+  document.getElementById("experiment").style.display = "none";
+ 
+  // テスト画面を表示
+  document.getElementById("test").style.display = "block";
+ 
+  // 最初の問題
+  showQuestion();
+ 
+}
+ 
+ 
+/* ========================================
+   問題を表示
+   ======================================== */
+ 
+function showQuestion() {
+ 
+  const person = people[currentQuestion];
+ 
+  document.getElementById("testPhoto").src = person.image;
+ 
+  document.getElementById("questionNumber").textContent =
+    "問題 " + (currentQuestion + 1) + " / " + people.length;
+ 
+ 
+  // 回答欄を空にする
+  document.getElementById("answer").value = "";
+ 
+ 
+  // 回答欄にカーソルを入れる
+  document.getElementById("answer").focus();
+ 
+}
+ 
+ 
+/* ========================================
+   次の問題
+   ======================================== */
+ 
+function nextQuestion() {
+ 
+  // 現在の回答を取得
+  const answer =
+    document.getElementById("answer").value.trim();
+ 
+  // 回答を保存
+  answers.push(answer);
+ 
+  currentQuestion++;
+ 
+ 
+  // 10問終了
+  if (currentQuestion >= people.length) {
+ 
+    // テスト画面を消す
+    document.getElementById("test").style.display = "none";
+ 
+    // 回答をGoogleスプレッドシートへ送信
+    sendAnswers();
+ 
+    // 終了画面を表示
+    document.getElementById("finish").style.display = "block";
+ 
+    return;
+ 
+  }
+ 
+ 
+  // 次の問題
+  showQuestion();
+ 
+}
+ 
+ 
+/* ========================================
+   Googleスプレッドシートへ回答を送信
+   ======================================== */
+ 
+function sendAnswers() {
+ 
+  const studentNumber =
+    document.getElementById("studentNumber").value.trim();
+ 
+  const studentName =
+    document.getElementById("studentName").value.trim();
+ 
+ 
+  fetch(WEB_APP_URL, {
+ 
+    method: "POST",
+ 
+    mode: "no-cors",
+ 
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8"
+    },
+ 
+    body: JSON.stringify({
+ 
+      studentNumber: studentNumber,
+ 
+      studentName: studentName,
+ 
+      answers: answers
+ 
+    })
+ 
+  });
+ 
+}
+ 
+ 
+</script>
+ 
+</body>
+ 
+</html>

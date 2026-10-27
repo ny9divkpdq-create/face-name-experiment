@@ -27,6 +27,11 @@ h1 { margin-bottom: 30px; }
 }
 
 #experiment, #test, #finish { display: none; }
+#peopleGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto; }
+.person-card { min-width: 0; padding: 12px; border: 1px solid #ddd; }
+.person-card img { width: 300px; height: 300px; max-width: 100%; object-fit: cover; border: 1px solid #ccc; }
+.person-card .person-name { font-size: 24px; margin-top: 12px; font-weight: bold; }
+@media (max-width: 650px) { #peopleGrid { grid-template-columns: 1fr; } }
 
 #photo, #testPhoto {
   width: 300px;
@@ -145,8 +150,8 @@ button {
     <h2>実験について</h2>
 
     <p>
-      これから10名の顔写真と名前が順番に表示されます。
-      それぞれの顔と名前をできるだけ覚えてください。
+      これから10名の顔写真と名前が一度に表示されます。
+      3分20秒間、それぞれの顔と名前をできるだけ覚えてください。
     </p>
 
     <p>
@@ -166,7 +171,7 @@ button {
       一度実験を開始したら絶対に中断しないでください。
     </p>
 
-    <p>実験の所要時間は約5分です。</p>
+    <p>実験の所要時間は約6分20秒です。</p>
   </div>
 
   <div class="input-area">
@@ -180,6 +185,10 @@ button {
     <p><strong>名前</strong></p>
     <input type="text" id="studentName"
       placeholder="名前を入力してください">
+
+    <p><strong>性別</strong></p>
+    <label><input type="radio" name="gender" value="男性"> 男性</label>
+    <label><input type="radio" name="gender" value="女性"> 女性</label>
   </div>
 
   <button onclick="startExperiment()">実験開始</button>
@@ -187,9 +196,9 @@ button {
 
 <!-- 学習画面 -->
 <div id="experiment">
-  <p id="personNumber"></p>
-  <img id="photo" src="" alt="顔写真">
-  <div id="name"></div>
+  <h1>学習画面</h1>
+  <p>10名の顔写真と名前を覚えてください。</p>
+  <div id="peopleGrid"></div>
   <div id="timer"></div>
 </div>
 
@@ -230,7 +239,7 @@ button {
 <script>
 /* Googleスプレッドシートへの送信先 */
 const WEB_APP_URL =
-"https://script.google.com/macros/s/AKfycbznJv7cONiRR1afJRfwtiXflxrShuIuGL2tunbVSoFoQTojXLdRHeElVcRqWaEFLydsuQ/exec";
+"https\://script.google.com/macros/s/AKfycbznJv7cONiRR1afJRfwtiXflxrShuIuGL2tunbVSoFoQTojXLdRHeElVcRqWaEFLydsuQ/exec";
 
 /* 実験に使用する10人 */
 const people = [
@@ -246,8 +255,7 @@ const people = [
   { id: "person10", name: "小川 潤", image: "images/person10.jpg" }
 ];
 
-const displayTime = 20;
-let currentPerson = 0;
+const displayTime = 200;
 let remainingTime = displayTime;
 let timer;
 let currentQuestion = 0;
@@ -285,9 +293,10 @@ function startExperiment() {
     document.getElementById("studentNumber").value.trim();
   const studentName =
     document.getElementById("studentName").value.trim();
+  const genderInput = document.querySelector('input[name="gender"]:checked');
 
-  if (studentNumber === "" || studentName === "") {
-    alert("学籍番号と名前を入力してください。");
+  if (studentNumber === "" || studentName === "" || !genderInput) {
+    alert("学籍番号、名前、性別を入力してください。");
     return;
   }
 
@@ -297,41 +306,46 @@ function startExperiment() {
   document.getElementById("start").style.display = "none";
   document.getElementById("experiment").style.display = "block";
 
-  showPerson();
+  remainingTime = displayTime;
+  renderPeople();
+  updateTimer();
   timer = setInterval(countDown, 1000);
 }
 
-/* 学習画面に人物を表示 */
-function showPerson() {
-  const person = people[currentPerson];
-
-  document.getElementById("photo").src = person.image;
-  document.getElementById("name").textContent = person.name;
-  document.getElementById("personNumber").textContent =
-    "人物 " + (currentPerson + 1) + " / " + people.length;
-
-  remainingTime = displayTime;
-  document.getElementById("timer").textContent =
-    "次の人物まで：" + remainingTime + "秒";
+/* 学習画面に10人全員を表示 */
+function renderPeople() {
+  const grid = document.getElementById("peopleGrid");
+  grid.innerHTML = "";
+  people.forEach((person, index) => {
+    const card = document.createElement("div");
+    card.className = "person-card";
+    const number = document.createElement("p");
+    number.textContent = "人物 " + (index + 1);
+    const photo = document.createElement("img");
+    photo.src = person.image;
+    photo.alt = "顔写真";
+    const name = document.createElement("div");
+    name.className = "person-name";
+    name.textContent = person.name;
+    card.append(number, photo, name);
+    grid.appendChild(card);
+  });
 }
 
-/* カウントダウン */
+/* 学習時間のカウントダウン */
+function updateTimer() {
+  const minutes = Math.floor(remainingTime / 60);
+  const seconds = remainingTime % 60;
+  document.getElementById("timer").textContent =
+    "回答画面に移るまで：" + minutes + "分" + String(seconds).padStart(2, "0") + "秒";
+}
+
 function countDown() {
   remainingTime--;
-
-  document.getElementById("timer").textContent =
-    "次の人物まで：" + remainingTime + "秒";
-
+  updateTimer();
   if (remainingTime <= 0) {
-    currentPerson++;
-
-    if (currentPerson >= people.length) {
-      clearInterval(timer);
-      startTest();
-      return;
-    }
-
-    showPerson();
+    clearInterval(timer);
+    startTest();
   }
 }
 
@@ -407,6 +421,7 @@ function sendAnswers() {
     body: JSON.stringify({
       studentNumber: studentNumber,
       studentName: studentName,
+      gender: document.querySelector('input[name="gender"]:checked').value,
       answers: answers
     })
   });
@@ -415,4 +430,3 @@ function sendAnswers() {
 
 </body>
 </html>
-

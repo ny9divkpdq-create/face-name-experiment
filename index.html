@@ -69,6 +69,46 @@ button {
 .input-area p { margin-bottom: 8px; }
 .example { font-size: 16px; margin-top: 8px; }
 
+
+/* 学習画面：10人を縦に並べてスクロール */
+#learningList {
+  max-height: 70vh;
+  overflow-y: auto;
+  margin: 0 auto;
+  padding: 12px;
+  max-width: 760px;
+  border: 1px solid #ccc;
+  background: #f8f8f8;
+}
+.person-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px;
+  margin-bottom: 12px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  text-align: left;
+}
+.person-card:last-child { margin-bottom: 0; }
+.person-card img {
+  width: 140px;
+  height: 140px;
+  object-fit: cover;
+  border: 1px solid #ccc;
+  flex-shrink: 0;
+}
+.person-card .person-name {
+  font-size: 24px;
+  font-weight: bold;
+}
+@media (max-width: 480px) {
+  .person-card { gap: 12px; padding: 10px; }
+  .person-card img { width: 100px; height: 100px; }
+  .person-card .person-name { font-size: 20px; }
+}
+
 /* ブラウザバック時の赤い警告画面 */
 #backWarning {
   display: none;
@@ -187,9 +227,8 @@ button {
 
 <!-- 学習画面 -->
 <div id="experiment">
-  <p id="personNumber"></p>
-  <img id="photo" src="" alt="顔写真">
-  <div id="name"></div>
+  <h2>10名の顔と名前を覚えてください</h2>
+  <div id="learningList"></div>
   <div id="timer"></div>
 </div>
 
@@ -248,7 +287,7 @@ const people = [
 
 const displayTime = 20;
 let currentPerson = 0;
-let remainingTime = displayTime;
+let remainingTime = displayTime * 10;
 let timer;
 let currentQuestion = 0;
 let testPeople = [];
@@ -298,40 +337,45 @@ function startExperiment() {
   document.getElementById("experiment").style.display = "block";
 
   showPerson();
+  remainingTime = displayTime * people.length;
+  document.getElementById("timer").textContent =
+    "学習時間：" + remainingTime + "秒";
   timer = setInterval(countDown, 1000);
 }
 
-/* 学習画面に人物を表示 */
+/* 学習画面に10人全員を表示 */
 function showPerson() {
-  const person = people[currentPerson];
+  const learningList = document.getElementById("learningList");
+  learningList.innerHTML = "";
 
-  document.getElementById("photo").src = person.image;
-  document.getElementById("name").textContent = person.name;
-  document.getElementById("personNumber").textContent =
-    "人物 " + (currentPerson + 1) + " / " + people.length;
+  people.forEach(function(person) {
+    const card = document.createElement("div");
+    card.className = "person-card";
 
-  remainingTime = displayTime;
-  document.getElementById("timer").textContent =
-    "次の人物まで：" + remainingTime + "秒";
+    const photo = document.createElement("img");
+    photo.src = person.image;
+    photo.alt = "顔写真";
+
+    const name = document.createElement("div");
+    name.className = "person-name";
+    name.textContent = person.name;
+
+    card.appendChild(photo);
+    card.appendChild(name);
+    learningList.appendChild(card);
+  });
 }
 
-/* カウントダウン */
+/* 学習時間のカウントダウン（従来の1人20秒×10人） */
 function countDown() {
   remainingTime--;
 
   document.getElementById("timer").textContent =
-    "次の人物まで：" + remainingTime + "秒";
+    "学習時間：" + remainingTime + "秒";
 
   if (remainingTime <= 0) {
-    currentPerson++;
-
-    if (currentPerson >= people.length) {
-      clearInterval(timer);
-      startTest();
-      return;
-    }
-
-    showPerson();
+    clearInterval(timer);
+    startTest();
   }
 }
 

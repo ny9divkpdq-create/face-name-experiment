@@ -18,10 +18,10 @@
   label { display:block; font-weight:650; margin-bottom:6px; }
   input[type="text"] { width:100%; padding:12px; font:inherit; border:1px solid #b9c5d1; border-radius:9px; }
   .note { color:#586575; font-size:.92rem; }
-  .people { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; }
-  .person { border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff; text-align:center; }
-  .person img { display:block; width:100%; aspect-ratio:3/4; object-fit:cover; background:#e9edf2; }
-  .person .name { padding:9px 5px 11px; font-weight:700; overflow-wrap:anywhere; }
+   .people { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:16px; align-items:start; }
+   .person { border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff; text-align:center; min-width:0; }
+   .person img { display:block; width:100%; aspect-ratio:3/4; object-fit:cover; object-position:center; background:#e9edf2; }
+   .person .name { padding:12px 5px 14px; font-weight:750; font-size:clamp(1rem,1.5vw,1.15rem); line-height:1.4; overflow-wrap:anywhere; }
   .person .placeholder { aspect-ratio:3/4; display:grid; place-items:center; padding:8px; color:#7b8794; background:#eef1f5; font-size:.8rem; }
   .actions { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:22px; }
   button { border:0; border-radius:4px; padding:12px 30px; font:inherit; font-size:20px; cursor:pointer; background:var(--accent); color:white; margin-top:20px; }
@@ -34,8 +34,15 @@
   .answer { margin-top:16px; text-align:left; }
   .error { color:#a32626; font-weight:650; margin-top:10px; }
   .hidden { display:none !important; }
-  @media (max-width:650px) { .people { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; } }
-  @media (min-width:651px) and (max-width:800px) { .people { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+  @media (max-width:650px) {
+    main { width:100%; padding:16px 12px 32px; }
+    .panel { padding:16px 12px; }
+    .people { grid-template-columns:minmax(0,1fr); gap:16px; }
+    .person { width:100%; max-width:420px; margin:0 auto; }
+    .person img { width:100%; max-height:560px; aspect-ratio:3/4; }
+    .person .name { padding:14px 8px 16px; font-size:1.25rem; }
+  }
+  @media (min-width:651px) and (max-width:800px) { .people { grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; } }
 </style>
 </head>
 <body>
@@ -102,16 +109,16 @@
 /* 画像・名前を変更する場合は、この10件を編集してください。
    画像はGitHubリポジトリ内の images/person01.jpg ～ person10.jpg を想定しています。 */
 const PEOPLE = [
-  { id: "person01", name: "名前をここに入力", image: "images/person01.jpg" },
-  { id: "person02", name: "名前をここに入力", image: "images/person02.jpg" },
-  { id: "person03", name: "名前をここに入力", image: "images/person03.jpg" },
-  { id: "person04", name: "名前をここに入力", image: "images/person04.jpg" },
-  { id: "person05", name: "名前をここに入力", image: "images/person05.jpg" },
-  { id: "person06", name: "名前をここに入力", image: "images/person06.jpg" },
-  { id: "person07", name: "名前をここに入力", image: "images/person07.jpg" },
-  { id: "person08", name: "名前をここに入力", image: "images/person08.jpg" },
-  { id: "person09", name: "名前をここに入力", image: "images/person09.jpg" },
-  { id: "person10", name: "名前をここに入力", image: "images/person10.jpg" }
+  { id: "person01", name: "小林 しおり", image: "images/person01.jpg" },
+  { id: "person02", name: "加藤 愛子", image: "images/person02.jpg" },
+  { id: "person03", name: "渡辺 拓也", image: "images/person03.jpg" },
+  { id: "person04", name: "高橋 祐介", image: "images/person04.jpg" },
+  { id: "person05", name: "中村 美奈", image: "images/person05.jpg" },
+  { id: "person06", name: "上田 彩", image: "images/person06.jpg" },
+  { id: "person07", name: "木下 大輔", image: "images/person07.jpg" },
+  { id: "person08", name: "佐藤 歩", image: "images/person08.jpg" },
+  { id: "person09", name: "山本 恵子", image: "images/person09.jpg" },
+  { id: "person10", name: "小川 潤", image: "images/person10.jpg" }
 ];
 
 // 新しいGoogle Apps ScriptウェブアプリURLを後で設定します。空欄の間は送信されません。
